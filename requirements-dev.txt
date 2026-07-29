@@ -1,0 +1,6 @@
+# Main dependencies
+-r requirements.txt
+
+# Dependencies for testing
+pytest~=8.3.0
+httpx~=0.28.0

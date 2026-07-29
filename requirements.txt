@@ -7,7 +7,3 @@ pydantic~=2.11.0
 
 # Dependencies for monitoring and metrics
 prometheus-fastapi-instrumentator~=7.0.0
-
-# Dependencies for testing
-pytest~=8.3.0
-httpx~=0.28.0
