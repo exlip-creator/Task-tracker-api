@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, HTTPException, status
+from fastapi import FastAPI, HTTPException, status
 from typing import List
 from prometheus_fastapi_instrumentator import Instrumentator
 from uuid import uuid4
@@ -29,7 +29,7 @@ async def get_tasks():
 
 @app.post("/tasks", response_model=Task, status_code=status.HTTP_201_CREATED, tags=["Tasks"])
 async def create_task(task_in: TaskCreate):
-    current_id = uuid4().str
+    current_id = str(uuid4())
     new_task = Task(
         id=current_id,
         title=task_in.title,
@@ -54,6 +54,6 @@ async def delete_task(task_id: str):
     for task in TASKS_DB:
         if task.id == task_id:
             TASKS_DB.remove(task)
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
+            return
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
