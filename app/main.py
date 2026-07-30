@@ -1,24 +1,25 @@
 from fastapi import FastAPI, HTTPException, status
+from contextlib import asynccontextmanager
 from typing import List
 from prometheus_fastapi_instrumentator import Instrumentator
 from uuid import uuid4
 
 from app.schemas import TaskCreate, Task
 
+instrumentator = Instrumentator(should_group_status_codes=False)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    instrumentator.instrument(app) 
+    instrumentator.expose(app, endpoint="/metrics", tags=["Infrastructure"])
+    yield
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Task Tracker API",
     description="A simple API for task tracking with Prometheus instrumentation.",
     version="1.0.0"
 )
-
-instrumentator = Instrumentator(
-    should_group_status_codes=False,
-)
-instrumentator.instrument(app)
-
-@app.on_event("startup")
-async def startup_event():
-    instrumentator.expose(app, endpoint="/metrics", tags=["Infrastructure"])
 
 TASKS_DB: List[Task] = []
 

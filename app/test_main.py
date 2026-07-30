@@ -3,7 +3,10 @@ import uuid
 from fastapi.testclient import TestClient
 from app.main import app, TASKS_DB
 
-client = TestClient(app)
+@pytest.fixture
+def client():
+    with TestClient(app) as c:
+        yield c
 
 @pytest.fixture(autouse=True)
 def clear_tasks_db():
@@ -17,7 +20,7 @@ def is_valid_uuid(uuid_to_test, version=4):
         return False
     return str(uuid_obj) == uuid_to_test
 
-def test_all_methods_tasks():
+def test_all_methods_tasks(client):
     # 1.Make sure the tasks database is empty
     response = client.get("/tasks")
     assert response.status_code == 200
@@ -49,7 +52,7 @@ def test_all_methods_tasks():
     assert response.status_code == 204
 
 
-def test_prometheus_metrics():
+def test_prometheus_metrics(client):
     # Check that the metrics endpoint is available  
     response = client.get("/metrics")
     assert response.status_code == 200
