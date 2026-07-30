@@ -13,7 +13,6 @@ app = FastAPI(
 
 instrumentator = Instrumentator(
     should_group_status_codes=False,
-    should_ignore_untargeted_routes=False,
 )
 instrumentator.instrument(app)
 
