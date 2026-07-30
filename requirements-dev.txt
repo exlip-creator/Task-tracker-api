@@ -4,3 +4,4 @@
 # Dependencies for testing
 pytest~=8.3.0
 httpx~=0.28.0
+flake8~=7.0.0
