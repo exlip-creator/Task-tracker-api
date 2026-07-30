@@ -2,7 +2,7 @@ name: Task-tracker API CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ features ]
 
 jobs:
   lint-and-test:
@@ -46,7 +46,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
