@@ -6,11 +6,8 @@ from uuid import uuid4
 
 from app.schemas import TaskCreate, Task
 
-instrumentator = Instrumentator(should_group_status_codes=False)
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    instrumentator.instrument(app) 
     instrumentator.expose(app, endpoint="/metrics", tags=["Infrastructure"])
     yield
 
@@ -20,6 +17,9 @@ app = FastAPI(
     description="A simple API for task tracking with Prometheus instrumentation.",
     version="1.0.0"
 )
+
+instrumentator = Instrumentator(should_group_status_codes=False)
+instrumentator.instrument(app) 
 
 TASKS_DB: List[Task] = []
 
