@@ -41,16 +41,16 @@ def test_all_methods_tasks():
     assert len(response.json()) == 1
 
     # 5.Complete the task
-    response = client.patch(f"/tasks/{data["id"]}/complete")
-    assert response["completed"] is True
+    response = client.patch(f"/tasks/{data['id']}/complete")
+    assert response.json()["completed"] is True
 
     # 6.Delete the task
-    response = client.delete(f"/tasks/{data["id"]}")
+    response = client.delete(f"/tasks/{data['id']}")
     assert response.status_code == 204
 
 
 def test_prometheus_metrics():
-    # Check that the metrics endpoint is available
+    # Check that the metrics endpoint is available  
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "http_requests_total" in response.text
