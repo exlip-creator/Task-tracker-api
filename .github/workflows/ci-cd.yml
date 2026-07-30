@@ -2,7 +2,11 @@ name: Task-tracker API CI/CD
 
 on:
   push:
-    branches: [ features ]
+    branches:
+      -features/* 
+  pull_request:
+    branches: 
+      - main
 
 jobs:
   lint-and-test:
