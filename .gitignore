@@ -31,7 +31,6 @@ htmlcov/
 
 # === Environment Variables & Secrets ===
 .env
-.env.[a-zA-Z]*
 *.env
 secret.json
 *.pem
