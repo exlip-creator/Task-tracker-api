@@ -34,10 +34,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Init data base
-        env:
-          PGPASSWORD: password
         run: |
-          docker run --net=host --rm -v ${{ github.workspace }}/data_base/init_db.sql:/tmp/init_db.sql postgres:16-alpine psql -h localhost -U test_user -d test_db -f /tmp/init_db.sql
+          docker run --net=host --rm -v ${{ github.workspace }}/data_base/init_db.sql:/tmp/init_db.sql \
+          -e PGPASSWORD=password postgres:16-alpine \
+          psql -h 127.0.0.1 -U test_user -d test_db -f /tmp/init_db.sql
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
