@@ -23,9 +23,6 @@ jobs:
         ports:
           - 5432:5432
         
-        volumes:
-          - ${{ github.workspace }}/data_base/init_db.sql:/docker-entrypoint-initdb.d/init.sql
-        
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -35,6 +32,13 @@ jobs:
     steps:
       - name: Check out code from repository
         uses: actions/checkout@v4
+
+      - name: Init data base
+        env:
+          PGPASSWORD: password
+        run: |
+          docker run --net=host --rm -v ${{ github.workspace }}/data_base/init_db.sql:/tmp/init_db.sql postgres:16-alpine \
+          psql -h localhost -U test_user -d test_db -f /tmp/init_db.sql
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
