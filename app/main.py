@@ -38,7 +38,7 @@ async def get_db():
     async with db_pool.acquire() as connection:
         yield connection
 
-@app.get("/tasks", response_model=list[Task], tags=["Tasks"])
+@app.get("/tasks", response_model=list[Task], status_code=status.HTTP_200_OK, tags=["Tasks"])
 async def get_tasks(db: asyncpg.Connection = Depends(get_db)):
     query = "SELECT id, title, description, completed FROM tasks ORDER BY id DESC;"
     rows = await db.fetch(query)
@@ -53,7 +53,7 @@ async def create_task(task_in: TaskCreate, db: asyncpg.Connection = Depends(get_
     row = await db.fetchrow(query, task_in.title, task_in.description)
     return dict(row)
 
-@app.patch("/tasks/{task_id}/complete", response_model=Task, tags=["Tasks"])
+@app.patch("/tasks/{task_id}/complete", response_model=Task, status_code=status.HTTP_200_OK, tags=["Tasks"])
 async def complete_task(task_id: int, db: asyncpg.Connection = Depends(get_db)):
     query = """
         UPDATE tasks
