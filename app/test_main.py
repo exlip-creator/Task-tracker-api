@@ -19,21 +19,21 @@ async def db_pool():
 
 @pytest.fixture(autouse=True)
 async def set_up_db(db_pool):
-    async with db_pool.acquire() as conn:
-        await conn.execute("TRUNCATE TABLE tasks RESTART IDENTITY CASCADE;")
+    async with db_pool.acquire() as connection:
+        await connection.execute("TRUNCATE TABLE tasks RESTART IDENTITY CASCADE;")
     yield
 
 @pytest.fixture
 async def client(db_pool):
     async def override_get_db():
-        async with db_pool.acquire() as conn:
-            yield conn
+        async with db_pool.acquire() as connection:
+            yield connection
 
     app.dependency_overrides[get_db] = override_get_db
 
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
+    async with AsyncClient(transport=transport, base_url="http://test") as async_client:
+        yield async_client
 
     app.dependency_overrides.clear()
 
@@ -68,6 +68,25 @@ async def test_all_methods_tasks(client):
     response = await client.delete(f"/tasks/{data['id']}")
     assert response.status_code == 204
 
+async def test_many_tasks(client):
+    new_tasks = [
+        {"title": f"Title {i}", "description": f"Description {i}"}
+        for i in range(1, 101)
+    ]
+
+    for task in new_tasks:
+        respones = await client.post("/tasks", json=task)
+        assert respones.status_code == 201
+
+    respones = await client.get("/tasks")
+    assert respones.status_code == 200
+    data = respones.json()
+    assert len(data) == 100
+
+    assert "Title 2" in data
+    assert "Title 33" in data
+    assert "Title 78" in data
+    assert "Title 90" in data
 
 async def test_prometheus_metrics(client):
     # Check that the metrics endpoint is available  
