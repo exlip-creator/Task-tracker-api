@@ -1,7 +1,6 @@
 import os
 from fastapi import FastAPI, HTTPException, status, Depends
 from contextlib import asynccontextmanager
-from typing import List
 from prometheus_fastapi_instrumentator import Instrumentator
 import asyncpg
 from dotenv import load_dotenv
@@ -19,16 +18,12 @@ instrumentator = Instrumentator(should_group_status_codes=False)
 async def lifespan(app: FastAPI):
     instrumentator.expose(app, endpoint="/metrics", tags=["Infrastructure"])
     global db_pool
-    db_pool = await asyncpg.create_pool(DATABASE_URL)
+    db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=3, max_size=5)
 
     yield
 
     if db_pool:
         await db_pool.close()
-
-async def get_db():
-    async with db_pool.acquire() as connection:
-        yield connection
 
 app = FastAPI(
     lifespan=lifespan,
@@ -39,7 +34,11 @@ app = FastAPI(
 
 instrumentator.instrument(app) 
 
-@app.get("/tasks", response_model=List[Task], tags=["Tasks"])
+async def get_db():
+    async with db_pool.acquire() as connection:
+        yield connection
+
+@app.get("/tasks", response_model=list[Task], tags=["Tasks"])
 async def get_tasks(db: asyncpg.Connection = Depends(get_db)):
     query = "SELECT id, title, description, completed FROM tasks ORDER BY id DESC;"
     rows = await db.fetch(query)
