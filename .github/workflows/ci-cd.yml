@@ -55,7 +55,7 @@ jobs:
 
       - name: Run tests with pytest
         env:
-          TEST_DATABASE_URL: postgresql://test_user:password@localhost:5432/test_db
+          TEST_DATABASE_URL: postgresql://test_user:password@127.0.0.1:5432/test_db
         run: pytest
 
   build-and-push-docker:
