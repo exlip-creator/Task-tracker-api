@@ -1,15 +1,29 @@
-from fastapi import FastAPI, HTTPException, status
+import os
+from fastapi import FastAPI, HTTPException, status, Depends
 from contextlib import asynccontextmanager
-from typing import List
 from prometheus_fastapi_instrumentator import Instrumentator
-from uuid import uuid4
+import asyncpg
+from dotenv import load_dotenv
 
 from app.schemas import TaskCreate, Task
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+db_pool: asyncpg.Pool = None
+
+instrumentator = Instrumentator(should_group_status_codes=False)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     instrumentator.expose(app, endpoint="/metrics", tags=["Infrastructure"])
+    global db_pool
+    db_pool = await asyncpg.create_pool(DATABASE_URL, min_size=3, max_size=5)
+
     yield
+
+    if db_pool:
+        await db_pool.close()
 
 app = FastAPI(
     lifespan=lifespan,
@@ -18,42 +32,43 @@ app = FastAPI(
     version="1.0.0"
 )
 
-instrumentator = Instrumentator(should_group_status_codes=False)
 instrumentator.instrument(app) 
 
-TASKS_DB: List[Task] = []
+async def get_db():
+    async with db_pool.acquire() as connection:
+        yield connection
 
-@app.get("/tasks", response_model=List[Task], tags=["Tasks"])
-async def get_tasks():
-    return TASKS_DB
+@app.get("/tasks", response_model=list[Task], status_code=status.HTTP_200_OK, tags=["Tasks"])
+async def get_tasks(db: asyncpg.Connection = Depends(get_db)):
+    query = "SELECT id, title, description, completed FROM tasks ORDER BY id DESC;"
+    rows = await db.fetch(query)
+    return [dict(row) for row in rows]
 
 @app.post("/tasks", response_model=Task, status_code=status.HTTP_201_CREATED, tags=["Tasks"])
-async def create_task(task_in: TaskCreate):
-    current_id = str(uuid4())
-    new_task = Task(
-        id=current_id,
-        title=task_in.title,
-        description=task_in.description,
-        completed=False
-    )
+async def create_task(task_in: TaskCreate, db: asyncpg.Connection = Depends(get_db)):
+    query = """
+        INSERT INTO tasks (title, description) VALUES ($1, $2)
+        RETURNING id, title, description, completed;
+    """
+    row = await db.fetchrow(query, task_in.title, task_in.description)
+    return dict(row)
 
-    TASKS_DB.append(new_task)
-    return new_task
-
-@app.patch("/tasks/{task_id}/complete", response_model=Task, tags=["Tasks"])
-async def complete_task(task_id: str):
-    for task in TASKS_DB:
-        if task.id == task_id:
-            task.completed = True
-            return task
-        
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+@app.patch("/tasks/{task_id}/complete", response_model=Task, status_code=status.HTTP_200_OK, tags=["Tasks"])
+async def complete_task(task_id: int, db: asyncpg.Connection = Depends(get_db)):
+    query = """
+        UPDATE tasks
+        SET completed = TRUE WHERE id = $1
+        RETURNING id, title, description, completed;
+    """
+    row = await db.fetchrow(query, task_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return dict(row)
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Tasks"])
-async def delete_task(task_id: str):
-    for task in TASKS_DB:
-        if task.id == task_id:
-            TASKS_DB.remove(task)
-            return
-
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+async def delete_task(task_id: int, db: asyncpg.Connection = Depends(get_db)):
+    query = "DELETE FROM tasks WHERE id = $1 RETURNING id;"
+    row = await db.fetchrow(query, task_id)
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    return None
