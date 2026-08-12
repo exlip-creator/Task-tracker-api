@@ -6,7 +6,7 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
 
 class Task(BaseModel):
-    id: str
+    id: int
     title: str 
     description: Optional[str] = None
     completed: bool = False
