@@ -1,0 +1,10 @@
+zone = "zone_of_your_provider"
+network_name = "name_of_your_network"
+subnet_name = "name_of_your_subnet"
+subnet_cidr = "range_of_your_subnet"
+
+vm_name = "name_of_your_vm"
+vm_cores = number_of_cpu_cores
+vm_memory = number_of_ram_in_gb
+
+ssh_public_key_path = "path_to_your_public_key"
