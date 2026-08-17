@@ -9,7 +9,9 @@ terraform {
   }
 
   backend "s3" {
-    endpoint = "https://storage.yandexcloud.net"
+    endpoints = {
+      s3 = "https://storage.yandexcloud.net"
+    }
     bucket = "task-tracker-tfstate-bucket"
     region = "ru-central1"
     key = "prod/terraform.tfstate"
