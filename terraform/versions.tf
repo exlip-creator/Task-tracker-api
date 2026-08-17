@@ -14,7 +14,7 @@ terraform {
     }
     bucket = "task-tracker-tfstate-bucket"
     region = "ru-central1"
-    key = "prod/terraform.tfstate"
+    key    = "prod/terraform.tfstate"
 
     skip_region_validation      = true
     skip_credentials_validation = true
