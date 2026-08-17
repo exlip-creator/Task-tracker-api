@@ -1,4 +1,7 @@
 zone = "zone_of_your_provider"
+cloud_id    = "your_cloud_id"
+folder_id   = "your_folder_id"
+
 network_name = "name_of_your_network"
 subnet_name = "name_of_your_subnet"
 subnet_cidr = "range_of_your_subnet"

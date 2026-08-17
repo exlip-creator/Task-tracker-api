@@ -49,3 +49,13 @@ variable "service_account_key_file" {
   description = "Path to the service account key file for Yandex Cloud"
   type        = string
 }
+
+variable "cloud_id" {
+  description = "Cloud ID for Yandex Cloud"
+  type        = string
+}
+
+variable "folder_id" {
+  description = "Folder ID for Yandex Cloud"
+  type        = string
+}
