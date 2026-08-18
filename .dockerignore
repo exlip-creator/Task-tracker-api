@@ -6,7 +6,8 @@
 .env.[a-zA-Z]*
 *.env
 *.pem
-*.key
+key.json
+service-account-key.json
 *.pub
 
 # Ignore Python cache files
@@ -16,3 +17,6 @@ __pycache__/
 # Ignore Git files
 .git/
 .gitignore
+
+# Terraform
+terraform/

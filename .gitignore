@@ -34,16 +34,17 @@ htmlcov/
 *.env
 secret.json
 *.pem
-*.key
+key.json
+service-account-key.json
 *.pub
 
 # === Terraform ===
-.terraform/
-*.tfstate
-*.tfstate.backup
-*.tfvars
-*.tfvars.json
-.terraform.lock.hcl
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars
+terraform/*.tfvars.json
+terraform/tfplan*
 crash.log
 crash.*.log
 override.tf
