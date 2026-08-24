@@ -1,11 +1,9 @@
 services: 
   web:
-    build: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/task-tracker-api:latest
     container_name: task-tracker-api
     ports:
       - "8000:8000"
-    volumes:
-      - .:/app
     environment:
       DATABASE_URL: ${DATABASE_URL}
 
