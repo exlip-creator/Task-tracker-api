@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-and-test
     
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
       - name: Check out code from repository
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push-docker
 
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     env: 
       TF_CLI_CONFIG_FILE: ${{ github.workspace }}/terraform/.terraformrc
@@ -102,6 +102,7 @@ jobs:
       TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
       TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
       TF_VAR_service_account_key_file: ${{ github.workspace }}/terraform/key.json
+      TF_VAR_ssh_public_key: ${{ github.workspace }}/terraform/ssh_key.pub
 
     outputs:
         server_public_ip: ${{ steps.tf_output.outputs.server_public_ip }}
@@ -130,6 +131,9 @@ jobs:
       - name: Write YC service account key
         run: echo '${{ secrets.YC_KEY_FILE }}' > ${{ github.workspace }}/terraform/key.json
 
+      - name: Write SSH public key
+        run: echo '${{ secrets.SSH_PUBLIC_KEY }}' > ${{ github.workspace }}/terraform/ssh_key.pub
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
@@ -140,6 +144,10 @@ jobs:
         if: always()
         run: rm -f ${{ github.workspace }}/terraform/key.json
 
+      - name: Cleanup ssh pub key
+        if: always()
+        run: rm -f ${{ github.workspace }}/terraform/ssh_key.pub
+
       - name: Terraform output
         id: tf_output
         run: echo "server_public_ip=$(terraform output -raw server_public_ip)" >> $GITHUB_OUTPUT
@@ -148,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform-provicion
 
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     
     defaults:
       run:
