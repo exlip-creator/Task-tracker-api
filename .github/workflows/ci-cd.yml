@@ -99,6 +99,9 @@ jobs:
       TF_CLI_CONFIG_FILE: ${{ github.workspace }}/terraform/.terraformrc
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
+      TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
+      TF_VAR_service_account_key_file: ${{ github.workspace }}/terraform/key.json
 
     outputs:
         server_public_ip: ${{ steps.tf_output.outputs.server_public_ip }}
@@ -124,11 +127,18 @@ jobs:
       - name: Terraform validate
         run: terraform validate
 
+      - name: Write YC service account key
+        run: echo '${{ secrets.YC_KEY_FILE }}' > ${{ github.workspace }}/terraform/key.json
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve "tfplan"
+
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f ${{ github.workspace }}/terraform/key.json
 
       - name: Terraform output
         id: tf_output
