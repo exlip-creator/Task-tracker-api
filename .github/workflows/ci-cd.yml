@@ -102,7 +102,7 @@ jobs:
       TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
       TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
       TF_VAR_service_account_key_file: ${{ github.workspace }}/terraform/key.json
-      TF_VAR_ssh_public_key: ${{ github.workspace }}/terraform/ssh_key.pub
+      TF_VAR_ssh_public_key_path: ${{ github.workspace }}/terraform/ssh_key.pub
 
     outputs:
         server_public_ip: ${{ steps.tf_output.outputs.server_public_ip }}
