@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-and-test
     
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') || (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     steps:
       - name: Check out code from repository
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push-docker
 
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') || (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     env: 
       TF_CLI_CONFIG_FILE: ${{ github.workspace }}/terraform/.terraformrc
@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform-provicion
 
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch') || (github.event_name == 'pull_request' && github.base_ref == 'main')
     
     defaults:
       run:
