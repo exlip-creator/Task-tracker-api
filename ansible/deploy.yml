@@ -1,0 +1,46 @@
+- name: Deploy task-tracker-api
+  hosts: app_servers
+  become: false
+  vars:
+    deploy_dir: /opt/task-tracker
+
+  tasks:
+    - name: Create deployment directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ deploy_dir }}"
+        - "{{ deploy_dir }}/data_base"
+
+    - name: Copy Docker Compose file
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../compose.yml"
+        dest: "{{ deploy_dir }}/compose.yml"
+        mode: '0644'
+
+    - name: Copy DB init script
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../data_base/init_db.sql"
+        dest: "{{ deploy_dir }}/data_base/init_db.sql"
+        mode: '0644'
+
+    - name: Create .env file
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/templates/env.j2"
+        dest: "{{ deploy_dir }}/.env"
+        mode: '0600'
+      no_log: true
+
+    - name: Pull docker images
+      ansible.builtin.command: docker compose pull
+      args:
+        chdir: "{{ deploy_dir }}"
+      changed_when: true
+
+    - name: Deploy application using Docker Compose
+      ansible.builtin.command: docker compose up -d --remove-orphans
+      args:
+        chdir: "{{ deploy_dir }}"
+      changed_when: true
