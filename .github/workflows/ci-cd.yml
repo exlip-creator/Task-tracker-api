@@ -3,7 +3,6 @@ name: Task-tracker API CI/CD
 on:
   push:
     branches:
-      - main
       - feature/* 
   pull_request:
     branches: 
@@ -137,7 +136,7 @@ jobs:
         id: tf_output
         run: echo "server_public_ip=$(terraform output -raw server_public_ip)" >> $GITHUB_OUTPUT
 
-  ansible-configure:
+  ansible-configure-deploy:
     runs-on: ubuntu-latest
     needs: terraform-provicion
 
@@ -174,4 +173,18 @@ jobs:
           --private-key ~/.ssh/deploy_key \
           install_docker.yml
 
-  # deploy:
+      - name: Deploy application
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        run: |
+          ansible-playbook -i "${{ needs.terraform-provicion.outputs.server_public_ip }}," \
+          --user "${{ secrets.SERVER_SSH_USER }}" \
+          --private-key ~/.ssh/deploy_key \
+          --extra-vars "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DATABASE_URL=${{ secrets.DATABASE_URL }} \
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }} POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}" \
+          deploy.yml
