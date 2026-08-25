@@ -181,7 +181,15 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY}}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ needs.terraform-provicion.outputs.server_public_ip }} >> ~/.ssh/known_hosts
+          echo "Waiting for SSH on ${{ needs.terraform-provicion.outputs.server_public_ip }}..."
+          for i in {1..30}; do
+            if ssh-keyscan -H ${{ needs.terraform-provicion.outputs.server_public_ip }} >> ~/.ssh/known_hosts 2>/dev/null; then
+              echo "SSH is up"
+              break
+            fi
+            echo "Not ready yet, retry $i/30..."
+            sleep 10
+          done
 
       - name: Run Ansible playbook
         run: |
