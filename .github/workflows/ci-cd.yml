@@ -191,11 +191,6 @@ jobs:
             sleep 10
           done
       
-      - name: Test SSH connection
-        run: |
-          ssh -vvv -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-          ${{ secrets.SERVER_SSH_USER }}@${{ needs.terraform-provicion.outputs.server_public_ip }} echo ok
-      
       - name: Run Ansible playbook
         run: |
           ansible-playbook -i "${{ needs.terraform-provicion.outputs.server_public_ip}}," \
