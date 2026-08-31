@@ -1,5 +1,5 @@
 - name: Deploy task-tracker-api
-  hosts: app_servers
+  hosts: all
   become: false
   vars:
     deploy_dir: /opt/task-tracker

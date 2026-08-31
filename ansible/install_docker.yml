@@ -1,5 +1,5 @@
 - name: Download and set up Docker
-  hosts: app_servers
+  hosts: all
   become: true
 
   tasks:
