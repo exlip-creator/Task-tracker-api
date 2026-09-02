@@ -15,6 +15,11 @@
           - gnupg
         state: present
 
+    - name: Remove old Docker GPG key if it exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/docker.gpg
+        state: absent
+
     - name: Create Docker GPG key directory
       file:
         path: /etc/apt/keyrings
@@ -24,13 +29,20 @@
     - name: Download Docker GPG key
       ansible.builtin.get_url:
         url: https://download.docker.com/linux/ubuntu/gpg
-        dest: /etc/apt/keyrings/docker.gpg
+        dest: /etc/apt/keyrings/docker.asc
         mode: '0644'
+        force: true
+
+    - name: Convert Docker GPG key to binary format
+      ansible.builtin.shell: gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.asc
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
 
     - name: Add Docker repository
       ansible.builtin.apt_repository:
         repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
+        update_cache: yes
 
     - name: Install Docker
       apt:
