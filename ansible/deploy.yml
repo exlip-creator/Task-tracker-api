@@ -1,6 +1,6 @@
 - name: Deploy task-tracker-api
   hosts: all
-  become: false
+  become: true
   vars:
     deploy_dir: /opt/task-tracker
 
@@ -13,6 +13,7 @@
       loop:
         - "{{ deploy_dir }}"
         - "{{ deploy_dir }}/data_base"
+      
 
     - name: Copy Docker Compose file
       ansible.builtin.copy:
