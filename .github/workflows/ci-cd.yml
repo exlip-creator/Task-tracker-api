@@ -205,11 +205,14 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          GRAFANA_ADMIN_USER: ${{ secrets.GRAFANA_ADMIN_USER }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
         run: |
           ansible-playbook -i "${{ needs.terraform-provicion.outputs.server_public_ip }}," \
           --user "${{ secrets.SERVER_SSH_USER }}" \
           --private-key ~/.ssh/deploy_key \
           --extra-vars "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }} DATABASE_URL=${{ secrets.DATABASE_URL }} \
           POSTGRES_USER=${{ secrets.POSTGRES_USER }} POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}" \
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }} GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }} \
+          GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
           deploy.yml

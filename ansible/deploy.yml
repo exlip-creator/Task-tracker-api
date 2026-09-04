@@ -13,12 +13,27 @@
       loop:
         - "{{ deploy_dir }}"
         - "{{ deploy_dir }}/data_base"
+        - "{{ deploy_dir }}/prometheus"
+        - "{{ deploy_dir }}/grafana/provisioning/datasources"
+        - "{{ deploy_dir }}/grafana/provisioning/dashboards"
       
 
     - name: Copy Docker Compose file
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../compose.yml"
         dest: "{{ deploy_dir }}/compose.yml"
+        mode: '0644'
+
+    - name: Copy Prometheus configuration
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../prometheus/"
+        dest: "{{ deploy_dir }}/prometheus/"
+        mode: '0644'
+
+    - name: Copy Grafana provisioning files
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../grafana/"
+        dest: "{{ deploy_dir }}/grafana/"
         mode: '0644'
 
     - name: Copy DB init script
