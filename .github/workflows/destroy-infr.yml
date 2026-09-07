@@ -1,0 +1,71 @@
+name: Destroy infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm deletion of all cloud resources'
+        required: true
+        type: string
+
+jobs:
+  terraform-destroy:
+    runs-on: ubuntu-latest
+
+    environment: production
+
+    env:    
+      TF_CLI_CONFIG_FILE: ${{ github.workspace }}/terraform/.terraformrc
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
+      TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
+      TF_VAR_service_account_key_file: ${{ github.workspace }}/terraform/key.json
+      TF_VAR_ssh_public_key_path: ${{ github.workspace }}/terraform/ssh_key.pub
+
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Validate confirmation input
+        if: inputs.confirm != 'destroy'
+        run: |
+          echo "::error::Confirmation failed. Expected 'destroy', got '${{ inputs.confirm }}'."
+          exit 1
+
+      - name: Check out code from repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.15.9'
+          terraform_wrapper: false
+
+      - name: Write YC service account key
+        run: echo '${{ secrets.YC_KEY_FILE }}' > ${{ github.workspace }}/terraform/key.json
+
+      - name: Write SSH public key
+        run: echo '${{ secrets.SSH_PUBLIC_KEY }}' > ${{ github.workspace }}/terraform/ssh_key.pub
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan Destroy
+        run: terraform plan -destroy -input=false -out=tfplan-destroy
+
+      - name: Terraform Destroy
+        run: terraform apply -auto-approve tfplan-destroy
+
+      - name: Cleanup service account key
+        if: always()
+        run: rm -f ${{ github.workspace }}/terraform/key.json
+
+      - name: Cleanup ssh pub key
+        if: always()
+        run: rm -f ${{ github.workspace }}/terraform/ssh_key.pub
+
+      - name: Show remaining state
+        if: always()
+        run: terraform state list || echo "State is empty"
